@@ -16,7 +16,8 @@
                         <group string="Conexión">
                             <field name="activo" widget="boolean_toggle"/>
                             <field name="proveedor" widget="radio"/>
-                            <field name="api_key" password="True" placeholder="Sin API Key la IA no hace nada"/>
+                            <field name="api_key" password="True" placeholder="Sin API Key la IA no hace nada"
+                                   groups="reclutamiento_tms.group_reclutamiento_manager"/>
                             <field name="modelo"/>
                             <field name="base_url"/>
                             <field name="timeout"/>
@@ -36,10 +37,11 @@
                     <div class="alert alert-secondary" role="status" invisible="not ultimo_test">
                         <field name="ultimo_test" readonly="1"/>
                     </div>
-                    <div class="alert alert-warning" role="status" invisible="activo and api_key">
+                    <div class="alert alert-warning" role="status" invisible="activo and tiene_api_key">
                         La IA está <b>desactivada</b> o sin API Key: no se evalúan postulaciones ni hay repreguntas.
                         Las entrevistas funcionan igual y puntúan solas las preguntas Sí/No, de opciones y de cálculo.
                     </div>
+                    <field name="tiene_api_key" invisible="1"/>
                     <div class="alert alert-info" role="status">
                         Si no hay entrevistas terminadas, el puntaje global se reparte solo entre Análisis de CV y
                         Matching de perfil. Las postulaciones se evalúan en segundo plano cada pocos minutos.

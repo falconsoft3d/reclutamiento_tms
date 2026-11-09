@@ -47,6 +47,11 @@ class ReclutamientoIaConfig(models.Model):
         help='Criterios propios de la empresa que se agregan a todas las evaluaciones.',
     )
     ultimo_test = fields.Text(string='Resultado de la última prueba', readonly=True)
+    tiene_api_key = fields.Boolean(string='Tiene API Key', compute='_compute_tiene_api_key')
+
+    def _compute_tiene_api_key(self):
+        for rec in self:
+            rec.tiene_api_key = bool(rec.sudo().api_key)
 
     @api.constrains('peso_cv', 'peso_match', 'peso_entrevista')
     def _check_pesos(self):

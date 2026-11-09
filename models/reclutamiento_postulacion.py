@@ -127,6 +127,7 @@ class ReclutamientoPostulacion(models.Model):
     entrevista_ids = fields.One2many('reclutamiento.entrevista', 'postulacion_id', string='Entrevistas', copy=False)
     entrevista_respuesta_ids = fields.One2many('reclutamiento.entrevista.respuesta', 'postulacion_id',
                                                string='Respuestas de entrevistas')
+    entrevista_inicial_url = fields.Char(string='Enlace de la entrevista', compute='_compute_entrevista_inicial_url')
     entrevista_estado = fields.Selection(RESUMEN_ENTREVISTAS, string='Entrevistas IA',
                                          compute='_compute_entrevista_estado', store=True)
     ia_resumen = fields.Text(string='Resumen', readonly=True, copy=False)
@@ -216,6 +217,10 @@ class ReclutamientoPostulacion(models.Model):
             'inicio': linea.inicio,
             'habilitada': linea.inicio == 'automatico',
         } for linea in self.vacante_id.entrevista_ids - existentes if linea.plantilla_id.pregunta_ids])
+
+    def _compute_entrevista_inicial_url(self):
+        for rec in self:
+            rec.entrevista_inicial_url = rec._primera_entrevista_habilitada().url or False
 
     def _primera_entrevista_habilitada(self):
         self.ensure_one()
