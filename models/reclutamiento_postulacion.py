@@ -109,7 +109,8 @@ class ReclutamientoPostulacion(models.Model):
     # Lista negra
     lista_negra = fields.Boolean(string='En lista negra', readonly=True, copy=False, tracking=True)
     lista_negra_criterio = fields.Char(string='Criterio coincidente', readonly=True, copy=False)
-    lista_negra_ids = fields.Many2many('reclutamiento.lista.negra', string='Coincidencias en lista negra',
+    lista_negra_ids = fields.Many2many('reclutamiento.lista.negra', 'reclutamiento_postulacion_lista_negra_rel',
+                                       'postulacion_id', 'lista_negra_id', string='Coincidencias en lista negra',
                                        readonly=True, copy=False)
 
     # Evaluación IA
@@ -665,7 +666,8 @@ class ReclutamientoPostulacionRespuesta(models.Model):
     tipo = fields.Selection(TIPOS_CAMPO, related='linea_id.tipo', string='Tipo')
     valor_texto = fields.Text(string='Texto')
     valor_bool = fields.Boolean(string='Sí / No')
-    opcion_ids = fields.Many2many('reclutamiento.plantilla.datos.opcion', string='Opciones elegidas',
+    opcion_ids = fields.Many2many('reclutamiento.plantilla.datos.opcion', 'reclutamiento_respuesta_opcion_rel',
+                                  'respuesta_id', 'opcion_id', string='Opciones elegidas',
                                   domain="[('linea_id', '=', linea_id)]")
     adjunto = fields.Binary(string='Documento', attachment=True)
     adjunto_nombre = fields.Char(string='Nombre del documento')
