@@ -133,6 +133,13 @@ async function odooFetch(ruta: string, init: RequestInit = {}, timeoutMs = 15_00
       signal: AbortSignal.timeout(timeoutMs),
     });
     const data = await res.json().catch(() => null);
+    if (res.status === 401) {
+      console.error(
+        `[odoo] ${ruta}: clave rechazada (401). RECLUTAMIENTO_API_KEY debe ser igual a "Clave de la API del portal" en Odoo.`,
+      );
+    } else if (!res.ok && res.status !== 404 && res.status !== 422) {
+      console.error(`[odoo] ${ruta}: respuesta ${res.status}`, data);
+    }
     return { status: res.status, data };
   } catch (error) {
     // Errores internos de Next (p. ej. fin del prerender) no se deben tragar.
