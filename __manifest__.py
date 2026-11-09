@@ -1,5 +1,5 @@
 {
-    'name': 'Reclutamiento TMS MFH',
+    'name': 'Reclutamiento TMS',
     'version': '19.0.1.0.0',
     'summary': 'Vacantes, portal de postulación con plantillas dinámicas, lista negra y evaluación con IA',
     'sequence': 12,
