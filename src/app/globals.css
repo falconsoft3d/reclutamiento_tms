@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+/* Paleta inspirada en transol.com.ar: verde #46aa4a, fondos oscuros con fotos de la flota. */
+:root {
+  --verde: #46aa4a;
+  --verde-oscuro: #2f8a34;
+  --verde-claro: #d2ffd2;
+  --negro: #111312;
+  --gris-oscuro: #2b2e2c;
+  --gris: #6e6d6d;
+  --gris-claro: #f3f5f3;
+  --borde: #dfe4df;
+  --rojo: #b42f2e;
+  --rojo-claro: #fdecec;
+}
+
+@theme inline {
+  --color-verde: var(--verde);
+  --color-verde-oscuro: var(--verde-oscuro);
+  --color-verde-claro: var(--verde-claro);
+  --color-negro: var(--negro);
+  --color-gris-oscuro: var(--gris-oscuro);
+  --color-gris: var(--gris);
+  --color-gris-claro: var(--gris-claro);
+  --color-borde: var(--borde);
+  --color-rojo: var(--rojo);
+  --color-rojo-claro: var(--rojo-claro);
+  --font-sans: var(--font-exo), "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  background: #ffffff;
+  color: var(--negro);
+}
+
+/* Contenido HTML que viene de Odoo (descripción de la vacante, noticias). */
+.contenido-html {
+  line-height: 1.65;
+}
+.contenido-html h1,
+.contenido-html h2,
+.contenido-html h3,
+.contenido-html h4 {
+  font-weight: 600;
+  margin: 1.2em 0 0.5em;
+}
+.contenido-html p {
+  margin: 0 0 0.8em;
+}
+.contenido-html ul,
+.contenido-html ol {
+  margin: 0 0 0.8em;
+  padding-left: 1.3em;
+  list-style: disc;
+}
+.contenido-html ol {
+  list-style: decimal;
+}
+.contenido-html a {
+  color: var(--verde-oscuro);
+  text-decoration: underline;
+}
+.contenido-html img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+/* Fondo con foto y velo oscuro (hero y banda). */
+.foto-oscura {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  isolation: isolate;
+}
+.foto-oscura::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.66) 55%, rgba(0, 0, 0, 0.38) 100%);
+}
