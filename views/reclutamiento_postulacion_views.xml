@@ -1,0 +1,501 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ===================== POSTULANTE ===================== -->
+    <record id="view_reclutamiento_postulante_list" model="ir.ui.view">
+        <field name="name">reclutamiento.postulante.list</field>
+        <field name="model">reclutamiento.postulante</field>
+        <field name="arch" type="xml">
+            <list string="Postulantes">
+                <field name="apellido"/>
+                <field name="nombre"/>
+                <field name="documento"/>
+                <field name="email"/>
+                <field name="telefono"/>
+                <field name="ubicacion" optional="show"/>
+                <field name="employee_id" optional="show"/>
+                <field name="postulacion_count"/>
+                <field name="ultimo_puntaje" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_reclutamiento_postulante_form" model="ir.ui.view">
+        <field name="name">reclutamiento.postulante.form</field>
+        <field name="model">reclutamiento.postulante</field>
+        <field name="arch" type="xml">
+            <form string="Postulante">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_ver_postulaciones" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="postulacion_count" widget="statinfo" string="Postulaciones"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Lista Negra" bg_color="text-bg-danger" invisible="not lista_negra"/>
+                    <div class="oe_title">
+                        <h1><field name="nombre_completo" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="nombre"/>
+                            <field name="apellido"/>
+                            <field name="documento"/>
+                            <field name="ubicacion"/>
+                        </group>
+                        <group>
+                            <field name="email" widget="email"/>
+                            <field name="telefono" widget="phone"/>
+                            <field name="employee_id"/>
+                            <field name="ultimo_puntaje"/>
+                            <field name="lista_negra" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="postulaciones" string="Postulaciones">
+                            <field name="postulacion_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="fecha"/>
+                                    <field name="vacante_id"/>
+                                    <field name="etapa_id"/>
+                                    <field name="puntaje_global"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="notas" string="Notas">
+                            <field name="notas"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_reclutamiento_postulante_search" model="ir.ui.view">
+        <field name="name">reclutamiento.postulante.search</field>
+        <field name="model">reclutamiento.postulante</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="nombre_completo"/>
+                <field name="documento"/>
+                <field name="email"/>
+                <field name="telefono"/>
+                <filter name="internos" string="Empleados" domain="[('employee_id', '!=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archivados" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_reclutamiento_postulante" model="ir.actions.act_window">
+        <field name="name">Postulantes</field>
+        <field name="res_model">reclutamiento.postulante</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay postulantes</p>
+            <p>Cada persona que se postula queda registrada una sola vez (por DNI/CUIT o Email) con todas sus
+                postulaciones. No se crean contactos.</p>
+        </field>
+    </record>
+
+    <!-- ===================== POSTULACIÓN ===================== -->
+    <record id="view_reclutamiento_postulacion_list" model="ir.ui.view">
+        <field name="name">reclutamiento.postulacion.list</field>
+        <field name="model">reclutamiento.postulacion</field>
+        <field name="arch" type="xml">
+            <list string="Postulaciones" decoration-danger="lista_negra" sample="1">
+                <field name="priority" widget="priority" optional="show"/>
+                <field name="name"/>
+                <field name="fecha"/>
+                <field name="nombre_completo"/>
+                <field name="documento" optional="hide"/>
+                <field name="email" optional="show"/>
+                <field name="telefono" optional="hide"/>
+                <field name="vacante_id"/>
+                <field name="origen" optional="hide"/>
+                <field name="puntaje_global" widget="progressbar"/>
+                <field name="entrevista_estado" optional="show"/>
+                <field name="ia_estado" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="etapa_id"/>
+                <field name="lista_negra" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_reclutamiento_postulacion_kanban" model="ir.ui.view">
+        <field name="name">reclutamiento.postulacion.kanban</field>
+        <field name="model">reclutamiento.postulacion</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="etapa_id" class="o_kanban_small_column" sample="1" quick_create="0">
+                <field name="lista_negra"/>
+                <field name="ia_estado"/>
+                <field name="puntaje_global"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <field name="nombre_completo" class="fw-bold"/>
+                            <field name="priority" widget="priority"/>
+                        </div>
+                        <field name="vacante_id" class="text-muted"/>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            <span t-if="record.lista_negra.raw_value" class="badge text-bg-danger">
+                                Lista Negra: <field name="lista_negra_criterio"/>
+                            </span>
+                            <span t-if="record.ia_estado.raw_value == 'hecho'"
+                                  t-attf-class="badge {{ record.puntaje_global.raw_value &gt;= 70 ? 'text-bg-success' : record.puntaje_global.raw_value &gt;= 50 ? 'text-bg-warning' : 'text-bg-secondary' }}">
+                                IA <field name="puntaje_global"/>/100
+                            </span>
+                            <span t-if="record.ia_estado.raw_value == 'pendiente'" class="badge text-bg-info">IA en cola</span>
+                            <span t-if="record.ia_estado.raw_value == 'error'" class="badge text-bg-warning">Error IA</span>
+                        </div>
+                        <footer>
+                            <div class="d-flex align-items-center">
+                                <field name="activity_ids" widget="kanban_activity"/>
+                                <field name="entrevista_estado" class="ms-1 small text-muted"/>
+                            </div>
+                            <div class="d-flex ms-auto align-items-center">
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                            </div>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_reclutamiento_postulacion_form" model="ir.ui.view">
+        <field name="name">reclutamiento.postulacion.form</field>
+        <field name="model">reclutamiento.postulacion</field>
+        <field name="arch" type="xml">
+            <form string="Postulación">
+                <header>
+                    <button name="action_pasar_entrevista" type="object" string="Pasar a entrevista" class="btn-primary"
+                            invisible="etapa_codigo not in ('recibida', 'evaluacion_ia')"/>
+                    <button name="action_aprobar" type="object" string="Aprobar" class="btn-primary"
+                            invisible="etapa_codigo in ('aprobado', 'rechazado', 'lista_negra')"
+                            confirm="Se aprobará la postulación y los datos se traspasarán al empleado (se crea si no existe). ¿Continuar?"/>
+                    <button name="action_rechazar" type="object" string="Rechazar"
+                            invisible="etapa_codigo in ('aprobado', 'rechazado')"/>
+                    <button name="action_reabrir" type="object" string="Reabrir"
+                            invisible="etapa_codigo not in ('aprobado', 'rechazado', 'lista_negra')"/>
+                    <button name="action_evaluar_ia" type="object" string="Evaluar con IA" icon="fa-magic"
+                            invisible="not ia_configurada or not id"/>
+                    <button name="action_verificar_lista_negra" type="object" string="Verificar Lista Negra"
+                            invisible="not id"/>
+                    <button name="action_agregar_lista_negra" type="object" string="Agregar a Lista Negra"
+                            invisible="not id or lista_negra"/>
+                    <field name="etapa_id" widget="statusbar" options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_ver_empleado" type="object" class="oe_stat_button" icon="fa-id-card-o"
+                                invisible="not employee_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Empleado</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Lista Negra" bg_color="text-bg-danger" invisible="not lista_negra"/>
+                    <widget name="web_ribbon" title="Aprobado" bg_color="text-bg-success"
+                            invisible="lista_negra or etapa_codigo != 'aprobado'"/>
+                    <div class="alert alert-danger" role="alert" invisible="not lista_negra">
+                        Coincide con la Lista Negra por: <b><field name="lista_negra_criterio" class="d-inline"/></b>.
+                        Ver la pestaña Lista Negra.
+                    </div>
+                    <div class="oe_title">
+                        <field name="priority" widget="priority" class="me-2"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Postulante">
+                            <field name="postulante_id" options="{'no_quick_create': True}"/>
+                            <field name="nombre"/>
+                            <field name="apellido"/>
+                            <field name="documento"/>
+                            <field name="email" widget="email"/>
+                            <field name="telefono" widget="phone"/>
+                            <field name="ubicacion"/>
+                        </group>
+                        <group string="Búsqueda">
+                            <field name="vacante_id"/>
+                            <field name="job_id"/>
+                            <field name="department_id"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="fecha"/>
+                            <field name="origen"/>
+                            <field name="employee_id"/>
+                            <field name="etapa_codigo" invisible="1"/>
+                            <field name="lista_negra" invisible="1"/>
+                            <field name="ia_configurada" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Puntaje">
+                        <group>
+                            <field name="puntaje_global" widget="progressbar"/>
+                            <field name="puntaje_cv" widget="progressbar"/>
+                            <field name="puntaje_match" widget="progressbar"/>
+                            <field name="puntaje_entrevista" widget="progressbar"/>
+                        </group>
+                        <group>
+                            <field name="ia_estado"/>
+                            <field name="ia_fecha" invisible="not ia_fecha"/>
+                            <field name="entrevista_estado"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="ia" string="Evaluación IA">
+                            <div class="alert alert-warning" role="alert" invisible="ia_estado != 'error'">
+                                <field name="ia_error"/>
+                            </div>
+                            <group>
+                                <field name="ia_resumen"/>
+                            </group>
+                            <group>
+                                <group string="Puntos fuertes">
+                                    <field name="ia_fortalezas" nolabel="1" colspan="2"/>
+                                </group>
+                                <group string="Riesgos detectados">
+                                    <field name="ia_riesgos" nolabel="1" colspan="2"/>
+                                </group>
+                            </group>
+                            <group string="Validación de referencias">
+                                <field name="ia_referencias" nolabel="1" colspan="2"/>
+                            </group>
+                            <group string="Matching de perfil">
+                                <field name="ia_match" nolabel="1" colspan="2"/>
+                            </group>
+                            <group string="Análisis del CV">
+                                <field name="ia_cv_analisis" nolabel="1" colspan="2"/>
+                            </group>
+                        </page>
+                        <page name="datos" string="Datos del cargo">
+                            <button name="action_cargar_plantilla_datos" type="object" string="Cargar campos de la plantilla"
+                                    class="btn-link" icon="fa-refresh"/>
+                            <field name="respuesta_ids">
+                                <list editable="bottom" create="0">
+                                    <field name="categoria_id"/>
+                                    <field name="linea_id" readonly="1"/>
+                                    <field name="tipo" column_invisible="True"/>
+                                    <field name="valor_texto" invisible="tipo not in ('texto', 'texto_largo')"/>
+                                    <field name="valor_bool" invisible="tipo != 'booleano'"/>
+                                    <field name="opcion_ids" widget="many2many_tags" invisible="tipo not in ('seleccion', 'multiple')"/>
+                                    <field name="adjunto" filename="adjunto_nombre" widget="binary" invisible="tipo != 'documento'"/>
+                                    <field name="adjunto_nombre" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="referencias" string="Referencias">
+                            <field name="referencia_ids">
+                                <list editable="bottom">
+                                    <field name="empresa"/>
+                                    <field name="contacto"/>
+                                    <field name="cargo"/>
+                                    <field name="telefono" widget="phone"/>
+                                    <field name="email" widget="email"/>
+                                    <field name="estado"/>
+                                    <field name="nota" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="cv" string="Currículum">
+                            <group>
+                                <field name="cv" filename="cv_filename"/>
+                                <field name="cv_filename" invisible="1"/>
+                            </group>
+                            <field name="cv_texto" placeholder="El texto se extrae del CV al evaluarlo con IA."/>
+                        </page>
+                        <page name="entrevistas" string="Entrevistas">
+                            <button name="action_cargar_entrevistas" type="object" string="Agregar entrevistas de la vacante"
+                                    class="btn-link" icon="fa-refresh"/>
+                            <field name="entrevista_ids">
+                                <list create="0">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="inicio"/>
+                                    <field name="habilitada"/>
+                                    <field name="estado" widget="badge"
+                                           decoration-info="estado == 'en_curso'"
+                                           decoration-success="estado == 'terminada'"
+                                           decoration-muted="estado == 'cancelada'"/>
+                                    <field name="puntaje" widget="progressbar"/>
+                                    <field name="fecha_fin" optional="show"/>
+                                    <button name="action_enviar_enlace" type="object" string="Enviar enlace" icon="fa-envelope"
+                                            invisible="estado in ('terminada', 'cancelada')"/>
+                                    <button name="action_abrir_chat" type="object" string="Ver chat" icon="fa-comments"/>
+                                </list>
+                            </field>
+                            <field name="entrevista_respuesta_ids">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="entrevista_id" readonly="1"/>
+                                    <field name="pregunta" readonly="1"/>
+                                    <field name="tipo" readonly="1"/>
+                                    <field name="respuesta" readonly="1"/>
+                                    <field name="puntos"/>
+                                    <field name="puntos_max" readonly="1"/>
+                                    <field name="ia_comentario" readonly="1" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="lista_negra" string="Lista Negra" invisible="not lista_negra">
+                            <field name="lista_negra_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="documento"/>
+                                    <field name="telefono"/>
+                                    <field name="email"/>
+                                    <field name="area_puesto"/>
+                                    <field name="motivo"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="notas" string="Notas">
+                            <group>
+                                <field name="motivo_rechazo"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_reclutamiento_postulacion_search" model="ir.ui.view">
+        <field name="name">reclutamiento.postulacion.search</field>
+        <field name="model">reclutamiento.postulacion</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="nombre_completo" string="Postulante"/>
+                <field name="name"/>
+                <field name="documento"/>
+                <field name="email"/>
+                <field name="vacante_id"/>
+                <field name="etapa_id"/>
+                <field name="user_id"/>
+                <filter name="mis_postulaciones" string="Mis postulaciones" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="activas" string="Activas"
+                        domain="[('etapa_codigo', 'not in', ('aprobado', 'rechazado', 'lista_negra'))]"/>
+                <filter name="lista_negra" string="Lista Negra" domain="[('lista_negra', '=', True)]"/>
+                <filter name="internas" string="Internas" domain="[('origen', '=', 'interna')]"/>
+                <separator/>
+                <filter name="ia_hecha" string="Evaluadas por IA" domain="[('ia_estado', '=', 'hecho')]"/>
+                <filter name="puntaje_alto" string="Puntaje ≥ 70" domain="[('puntaje_global', '&gt;=', 70)]"/>
+                <filter name="ia_error" string="Error de IA" domain="[('ia_estado', '=', 'error')]"/>
+                <separator/>
+                <filter name="filter_fecha" string="Fecha" date="fecha"/>
+                <group>
+                    <filter name="group_vacante" string="Vacante" context="{'group_by': 'vacante_id'}"/>
+                    <filter name="group_etapa" string="Etapa" context="{'group_by': 'etapa_id'}"/>
+                    <filter name="group_user" string="Responsable" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_origen" string="Origen" context="{'group_by': 'origen'}"/>
+                    <filter name="group_fecha" string="Fecha" context="{'group_by': 'fecha'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_reclutamiento_postulacion_pivot" model="ir.ui.view">
+        <field name="name">reclutamiento.postulacion.pivot</field>
+        <field name="model">reclutamiento.postulacion</field>
+        <field name="arch" type="xml">
+            <pivot string="Análisis de postulaciones" sample="1">
+                <field name="vacante_id" type="row"/>
+                <field name="etapa_id" type="col"/>
+                <field name="puntaje_global" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_reclutamiento_postulacion_graph" model="ir.ui.view">
+        <field name="name">reclutamiento.postulacion.graph</field>
+        <field name="model">reclutamiento.postulacion</field>
+        <field name="arch" type="xml">
+            <graph string="Postulaciones" type="bar" sample="1">
+                <field name="vacante_id"/>
+                <field name="etapa_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_reclutamiento_postulacion" model="ir.actions.act_window">
+        <field name="name">Postulaciones</field>
+        <field name="res_model">reclutamiento.postulacion</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_reclutamiento_postulacion_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay postulaciones</p>
+            <p>Llegan desde el portal /reclutamiento_tms, desde la ficha del empleado (búsquedas internas)
+                o se cargan a mano.</p>
+        </field>
+    </record>
+
+    <!-- ===================== ENTREVISTA (detalle y chat) ===================== -->
+    <record id="view_reclutamiento_entrevista_form" model="ir.ui.view">
+        <field name="name">reclutamiento.entrevista.form</field>
+        <field name="model">reclutamiento.entrevista</field>
+        <field name="arch" type="xml">
+            <form string="Entrevista">
+                <header>
+                    <button name="action_enviar_enlace" type="object" string="Habilitar y enviar enlace" class="btn-primary"
+                            invisible="estado in ('terminada', 'cancelada')"/>
+                    <button name="action_abrir_chat" type="object" string="Ver chat"/>
+                    <button name="action_reiniciar" type="object" string="Reiniciar"
+                            confirm="Se borran las respuestas y la conversación. ¿Continuar?"
+                            groups="reclutamiento_tms.group_reclutamiento_manager"/>
+                    <button name="action_cancelar" type="object" string="Cancelar"
+                            invisible="estado in ('terminada', 'cancelada')"/>
+                    <field name="estado" widget="statusbar" statusbar_visible="pendiente,en_curso,terminada"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="postulacion_id" readonly="1"/>
+                            <field name="nombre_postulante"/>
+                            <field name="plantilla_id" readonly="estado != 'pendiente'"/>
+                            <field name="inicio"/>
+                            <field name="habilitada"/>
+                        </group>
+                        <group>
+                            <field name="puntaje" widget="progressbar"/>
+                            <field name="fecha_inicio"/>
+                            <field name="fecha_fin"/>
+                            <field name="url" widget="CopyClipboardChar"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="respuestas" string="Respuestas">
+                            <field name="respuesta_ids">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="pregunta" readonly="1"/>
+                                    <field name="tipo" readonly="1"/>
+                                    <field name="respuesta" readonly="1"/>
+                                    <field name="valor_esperado" readonly="1" invisible="tipo != 'calculo'"/>
+                                    <field name="repreguntas" readonly="1" optional="hide"/>
+                                    <field name="puntos"/>
+                                    <field name="puntos_max" readonly="1"/>
+                                    <field name="ia_comentario" readonly="1" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="chat" string="Conversación">
+                            <field name="mensaje_ids" readonly="1">
+                                <list>
+                                    <field name="fecha"/>
+                                    <field name="rol" widget="badge" decoration-info="rol == 'bot'"
+                                           decoration-success="rol == 'candidato'"/>
+                                    <field name="contenido"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

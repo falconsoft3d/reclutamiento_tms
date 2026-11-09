@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- =====================================================================
+         LAYOUT DEL PORTAL DE RECLUTAMIENTO (inspirado en transol.com.ar)
+         ===================================================================== -->
+    <template id="portal_layout" name="Reclutamiento TMS: layout">
+        <t t-call="web.layout">
+            <t t-set="html_data" t-value="{'lang': 'es'}"/>
+            <t t-set="title" t-value="(titulo or 'Trabajá con nosotros') + ' | ' + (company.name or '')"/>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="description" t-att-content="'Búsquedas laborales de ' + (company.name or '')"/>
+                <link rel="preconnect" href="https://fonts.googleapis.com"/>
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+                <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
+                <t t-call-assets="web.assets_frontend" t-js="false"/>
+                <link rel="stylesheet" href="/reclutamiento_tms/static/src/css/portal.css"/>
+            </t>
+            <div class="rt-page">
+                <nav class="rt-nav">
+                    <div class="rt-container rt-nav-inner">
+                        <a href="/reclutamiento_tms" class="rt-brand">
+                            <img t-if="company.logo" t-attf-src="/web/binary/company_logo?company={{ company.id }}"
+                                 t-att-alt="company.name"/>
+                            <span t-else="" t-esc="(company.name or '').upper()"/>
+                        </a>
+                        <input type="checkbox" id="rt-menu" class="rt-menu-toggle"/>
+                        <label for="rt-menu" class="rt-menu-btn" aria-label="Menú"><span/><span/><span/></label>
+                        <ul class="rt-menu">
+                            <li><a href="/reclutamiento_tms" t-att-class="'active' if seccion == 'inicio' else ''">INICIO</a></li>
+                            <li><a href="/reclutamiento_tms#busquedas" t-att-class="'active' if seccion == 'vacantes' else ''">BÚSQUEDAS</a></li>
+                            <li t-if="hay_noticias"><a href="/reclutamiento_tms/noticias" t-att-class="'active' if seccion == 'noticias' else ''">NOTICIAS</a></li>
+                            <li t-if="company.website"><a t-att-href="company.website" target="_blank" rel="noopener">SITIO WEB</a></li>
+                        </ul>
+                    </div>
+                </nav>
+                <main>
+                    <t t-out="0"/>
+                </main>
+                <footer class="rt-footer">
+                    <div class="rt-container rt-footer-grid">
+                        <div>
+                            <p class="rt-footer-title" t-esc="(company.name or '').upper()"/>
+                            <p class="rt-footer-tag">Al servicio de las grandes empresas</p>
+                        </div>
+                        <div>
+                            <p class="rt-footer-title">CONTACTO</p>
+                            <p t-if="company.street">
+                                <t t-esc="company.street"/><t t-if="company.city">, <t t-esc="company.city"/></t>
+                                <t t-if="company.zip"> (CP <t t-esc="company.zip"/>)</t>
+                            </p>
+                            <p t-if="company.phone">Tel.: <a t-attf-href="tel:{{ company.phone }}" t-esc="company.phone"/></p>
+                            <p t-if="company.email"><a t-attf-href="mailto:{{ company.email }}" t-esc="company.email"/></p>
+                        </div>
+                        <div>
+                            <p class="rt-footer-title">TRABAJÁ CON NOSOTROS</p>
+                            <p><a href="/reclutamiento_tms#busquedas">Ver búsquedas activas</a></p>
+                            <p t-if="hay_noticias"><a href="/reclutamiento_tms/noticias">Noticias</a></p>
+                        </div>
+                    </div>
+                    <div class="rt-footer-copy">
+                        © <t t-esc="anio"/> <t t-esc="company.name"/> - Todos los derechos reservados
+                    </div>
+                </footer>
+            </div>
+        </t>
+    </template>
+
+    <!-- Tarjeta de vacante reutilizable -->
+    <template id="portal_tarjeta_vacante" name="Reclutamiento TMS: tarjeta de vacante">
+        <a class="rt-card rt-card-vacante" t-attf-href="/reclutamiento_tms/{{ vacante.id }}">
+            <span class="rt-card-kicker" t-esc="vacante.department_id.name or 'Búsqueda'"/>
+            <h3 t-esc="vacante.name"/>
+            <ul class="rt-meta">
+                <li t-if="vacante.ubicacion"><span class="rt-ico">📍</span><t t-esc="vacante.ubicacion"/></li>
+                <li t-if="vacante.modalidad"><span class="rt-ico">🕒</span><t t-esc="vacante.modalidad"/></li>
+                <li t-if="vacante.fecha_cierre"><span class="rt-ico">📅</span>Hasta el <span t-field="vacante.fecha_cierre"/></li>
+            </ul>
+            <span class="rt-link">Ver y postularme →</span>
+        </a>
+    </template>
+
+    <!-- Tarjeta de noticia reutilizable -->
+    <template id="portal_tarjeta_noticia" name="Reclutamiento TMS: tarjeta de noticia">
+        <a class="rt-card rt-card-noticia" t-attf-href="/reclutamiento_tms/noticias/{{ noticia.id }}">
+            <div class="rt-card-img" t-if="noticia.imagen"
+                 t-attf-style="background-image: url('/reclutamiento_tms/noticias/{{ noticia.id }}/imagen')"/>
+            <div class="rt-card-img rt-card-img-vacia" t-else=""/>
+            <div class="rt-card-body">
+                <span class="rt-card-kicker" t-field="noticia.fecha"/>
+                <h3 t-esc="noticia.name"/>
+                <p t-if="noticia.resumen" t-esc="noticia.resumen"/>
+                <span class="rt-link">Leer más →</span>
+            </div>
+        </a>
+    </template>
+
+    <!-- =====================================================================
+         PORTADA
+         ===================================================================== -->
+    <template id="portal_inicio" name="Reclutamiento TMS: inicio">
+        <t t-call="reclutamiento_tms.portal_layout">
+            <section class="rt-hero" style="background-image: url('/reclutamiento_tms/static/src/img/hero.jpg')">
+                <div class="rt-container">
+                    <p class="rt-hero-kicker">RECURSOS HUMANOS</p>
+                    <h1>Trabajá <span>con nosotros</span></h1>
+                    <p class="rt-hero-sub">Sumate a un equipo con más de 30 años en el transporte y la distribución de
+                        sustancias peligrosas y generales, donde la seguridad, la calidad y el cuidado del ambiente son
+                        lo primero.</p>
+                    <a href="#busquedas" class="rt-btn">Ver búsquedas activas</a>
+                </div>
+            </section>
+
+            <section id="busquedas" class="rt-section">
+                <div class="rt-container">
+                    <h2 class="rt-title">Búsquedas <span>activas</span></h2>
+                    <div t-if="vacantes" class="rt-grid">
+                        <t t-foreach="vacantes" t-as="vacante">
+                            <t t-call="reclutamiento_tms.portal_tarjeta_vacante"/>
+                        </t>
+                    </div>
+                    <div t-else="" class="rt-empty">
+                        <p>En este momento no tenemos búsquedas abiertas.</p>
+                        <p>Volvé a visitarnos pronto: publicamos nuevas oportunidades con frecuencia.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="rt-band" style="background-image: url('/reclutamiento_tms/static/src/img/banda.jpg')">
+                <div class="rt-container rt-band-grid">
+                    <div>
+                        <h2>¿Por qué <span>sumarte</span>?</h2>
+                    </div>
+                    <ul class="rt-band-list">
+                        <li><b>Seguridad primero.</b> Capacitación permanente y procesos certificados ISO 9001, 39001, 14001 y 45001.</li>
+                        <li><b>Flota moderna.</b> Unidades en excelente estado y mantenimiento propio.</li>
+                        <li><b>Crecimiento.</b> Búsquedas internas para que el equipo crezca dentro de la empresa.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section t-if="noticias" class="rt-section rt-section-gris">
+                <div class="rt-container">
+                    <div class="rt-title-row">
+                        <h2 class="rt-title">Últimas <span>noticias</span></h2>
+                        <a href="/reclutamiento_tms/noticias" class="rt-link">Ver todas →</a>
+                    </div>
+                    <div class="rt-grid">
+                        <t t-foreach="noticias" t-as="noticia">
+                            <t t-call="reclutamiento_tms.portal_tarjeta_noticia"/>
+                        </t>
+                    </div>
+                </div>
+            </section>
+        </t>
+    </template>
+
+    <!-- =====================================================================
+         VACANTE + FORMULARIO DE POSTULACIÓN
+         ===================================================================== -->
+    <template id="portal_vacante" name="Reclutamiento TMS: vacante">
+        <t t-call="reclutamiento_tms.portal_layout">
+            <t t-set="titulo" t-value="vacante.name"/>
+            <section class="rt-hero rt-hero-chico" style="background-image: url('/reclutamiento_tms/static/src/img/hero.jpg')">
+                <div class="rt-container">
+                    <a href="/reclutamiento_tms#busquedas" class="rt-back">← Búsquedas activas</a>
+                    <p class="rt-hero-kicker" t-esc="(vacante.department_id.name or 'Búsqueda laboral').upper()"/>
+                    <h1 t-esc="vacante.name"/>
+                    <ul class="rt-meta rt-meta-claro">
+                        <li t-if="vacante.ubicacion"><span class="rt-ico">📍</span><t t-esc="vacante.ubicacion"/></li>
+                        <li t-if="vacante.modalidad"><span class="rt-ico">🕒</span><t t-esc="vacante.modalidad"/></li>
+                        <li t-if="vacante.fecha_cierre"><span class="rt-ico">📅</span>Hasta el <span t-field="vacante.fecha_cierre"/></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="rt-section">
+                <div class="rt-container rt-vacante-grid">
+                    <aside class="rt-vacante-info">
+                        <div class="rt-card rt-card-plana">
+                            <h2 class="rt-subtitle">Sobre el puesto</h2>
+                            <div class="rt-rich" t-if="vacante.descripcion" t-out="vacante.descripcion"/>
+                            <p t-else="" class="text-muted">Completá el formulario y te contactamos.</p>
+                        </div>
+                    </aside>
+
+                    <form class="rt-form" t-attf-action="/reclutamiento_tms/{{ vacante.id }}/postular" method="post"
+                          enctype="multipart/form-data" novalidate="">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="rt-hp" aria-hidden="true">
+                            <label>No completar <input type="text" name="sitio_web" tabindex="-1" autocomplete="off"/></label>
+                        </div>
+
+                        <div t-if="errores" class="rt-alert rt-alert-error" role="alert">
+                            <b>Revisá estos datos:</b>
+                            <ul><li t-foreach="errores" t-as="error" t-esc="error"/></ul>
+                        </div>
+
+                        <!-- 1. Datos personales -->
+                        <fieldset class="rt-paso">
+                            <legend><span class="rt-num">1</span>Datos personales</legend>
+                            <div class="rt-campos">
+                                <label class="rt-campo">Nombre *
+                                    <input type="text" name="nombre" required="" maxlength="100" autocomplete="given-name" t-att-value="valores.get('nombre')"/>
+                                </label>
+                                <label class="rt-campo">Apellido *
+                                    <input type="text" name="apellido" required="" maxlength="100" autocomplete="family-name" t-att-value="valores.get('apellido')"/>
+                                </label>
+                                <label class="rt-campo">Email *
+                                    <input type="email" name="email" required="" maxlength="200" autocomplete="email" t-att-value="valores.get('email')"/>
+                                </label>
+                                <label class="rt-campo">Teléfono *
+                                    <input type="tel" name="telefono" required="" maxlength="50" autocomplete="tel" t-att-value="valores.get('telefono')"/>
+                                </label>
+                                <label class="rt-campo">DNI / CUIT / CUIL *
+                                    <input type="text" name="documento" required="" maxlength="30" inputmode="numeric" t-att-value="valores.get('documento')"/>
+                                </label>
+                                <label class="rt-campo">Ubicación (Provincia / Localidad)
+                                    <input type="text" name="ubicacion" maxlength="150" t-att-value="valores.get('ubicacion')"/>
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <!-- 2. CV -->
+                        <fieldset class="rt-paso">
+                            <legend><span class="rt-num">2</span>Currículum Vitae</legend>
+                            <label class="rt-archivo">
+                                <input type="file" name="cv" required=""
+                                       accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
+                                <span class="rt-archivo-txt">Elegí tu CV en PDF o Word (.docx), hasta 10 MB</span>
+                            </label>
+                        </fieldset>
+
+                        <!-- 3. Referencias -->
+                        <fieldset class="rt-paso">
+                            <legend><span class="rt-num">3</span>Referencias laborales</legend>
+                            <p class="rt-ayuda">Cargá al menos <b t-esc="referencias_minimas"/> referencias de empresas donde trabajaste:
+                                empresa, persona de contacto, su cargo y un teléfono o email.</p>
+                            <div class="rt-refs" t-att-data-minimo="referencias_minimas">
+                                <t t-foreach="referencias" t-as="ref">
+                                    <t t-call="reclutamiento_tms.portal_referencia_fila"/>
+                                </t>
+                            </div>
+                            <button type="button" class="rt-btn rt-btn-linea rt-ref-agregar">+ Agregar referencia</button>
+                        </fieldset>
+
+                        <!-- 4..n. Campos del cargo por categoría -->
+                        <t t-foreach="grupos" t-as="grupo">
+                            <t t-set="categoria" t-value="grupo[0]"/>
+                            <fieldset class="rt-paso">
+                                <legend><span class="rt-num" t-esc="grupo_index + 4"/><t t-esc="categoria.name or 'Otros datos'"/></legend>
+                                <p t-if="categoria.descripcion" class="rt-ayuda" t-esc="categoria.descripcion"/>
+                                <div class="rt-campos">
+                                    <t t-foreach="grupo[1]" t-as="linea">
+                                        <t t-set="clave" t-value="'campo_%s' % linea.id"/>
+                                        <t t-set="etiqueta" t-value="linea.name + (' *' if linea.requerido else '')"/>
+
+                                        <label t-if="linea.tipo == 'texto'" class="rt-campo">
+                                            <t t-esc="etiqueta"/>
+                                            <input type="text" t-att-name="clave" maxlength="500" t-att-required="linea.requerido or None"
+                                                   t-att-value="valores.get(clave)"/>
+                                            <small t-if="linea.ayuda" t-esc="linea.ayuda"/>
+                                        </label>
+
+                                        <label t-elif="linea.tipo == 'texto_largo'" class="rt-campo rt-campo-ancho">
+                                            <t t-esc="etiqueta"/>
+                                            <textarea t-att-name="clave" rows="3" maxlength="2000" t-att-required="linea.requerido or None"
+                                                      t-esc="valores.get(clave)"/>
+                                            <small t-if="linea.ayuda" t-esc="linea.ayuda"/>
+                                        </label>
+
+                                        <div t-elif="linea.tipo == 'booleano'" class="rt-campo rt-campo-ancho">
+                                            <span class="rt-campo-label" t-esc="etiqueta"/>
+                                            <div class="rt-chips">
+                                                <label class="rt-chip"><input type="radio" t-att-name="clave" value="si"
+                                                       t-att-checked="valores.get(clave) == 'si' or None"/><span>Sí</span></label>
+                                                <label class="rt-chip"><input type="radio" t-att-name="clave" value="no"
+                                                       t-att-checked="valores.get(clave) == 'no' or None"/><span>No</span></label>
+                                            </div>
+                                            <small t-if="linea.ayuda" t-esc="linea.ayuda"/>
+                                        </div>
+
+                                        <div t-elif="linea.tipo in ('seleccion', 'multiple')" class="rt-campo rt-campo-ancho">
+                                            <span class="rt-campo-label">
+                                                <t t-esc="etiqueta"/>
+                                                <em t-if="linea.tipo == 'multiple'"> (podés marcar varias)</em>
+                                            </span>
+                                            <div class="rt-chips">
+                                                <t t-foreach="linea.opcion_ids" t-as="opcion">
+                                                    <label class="rt-chip">
+                                                        <input t-att-type="'checkbox' if linea.tipo == 'multiple' else 'radio'"
+                                                               t-att-name="clave" t-att-value="opcion.id"
+                                                               t-att-checked="str(opcion.id) in multi.get(clave, []) or None"/>
+                                                        <span t-esc="opcion.name"/>
+                                                    </label>
+                                                </t>
+                                            </div>
+                                            <small t-if="linea.ayuda" t-esc="linea.ayuda"/>
+                                        </div>
+
+                                        <div t-elif="linea.tipo == 'documento'" class="rt-campo rt-campo-ancho">
+                                            <span class="rt-campo-label" t-esc="etiqueta"/>
+                                            <label class="rt-archivo rt-archivo-chico">
+                                                <input type="file" t-att-name="clave" accept=".pdf,.docx,.jpg,.jpeg,.png,.webp"
+                                                       t-att-required="linea.requerido or None"/>
+                                                <span class="rt-archivo-txt">PDF, Word o imagen, hasta 10 MB</span>
+                                            </label>
+                                            <small t-if="linea.ayuda" t-esc="linea.ayuda"/>
+                                        </div>
+                                    </t>
+                                </div>
+                            </fieldset>
+                        </t>
+
+                        <div class="rt-enviar">
+                            <p class="rt-ayuda">Al postularte aceptás que usemos tus datos solo para este proceso de selección.
+                                <t t-if="vacante.entrevista_ids">Después vas a hacer una breve entrevista en línea.</t></p>
+                            <button type="submit" class="rt-btn rt-btn-grande">Postularme</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+            <script src="/reclutamiento_tms/static/src/js/portal.js" defer=""/>
+        </t>
+    </template>
+
+    <template id="portal_referencia_fila" name="Reclutamiento TMS: fila de referencia">
+        <div class="rt-ref">
+            <input type="text" name="ref_empresa" placeholder="Empresa" maxlength="200" t-att-value="ref.get('empresa')"/>
+            <input type="text" name="ref_contacto" placeholder="Persona de contacto" maxlength="200" t-att-value="ref.get('contacto')"/>
+            <input type="text" name="ref_cargo" placeholder="Cargo del contacto" maxlength="200" t-att-value="ref.get('cargo')"/>
+            <input type="tel" name="ref_telefono" placeholder="Teléfono" maxlength="50" t-att-value="ref.get('telefono')"/>
+            <input type="email" name="ref_email" placeholder="Email" maxlength="200" t-att-value="ref.get('email')"/>
+            <button type="button" class="rt-ref-quitar" aria-label="Quitar referencia">×</button>
+        </div>
+    </template>
+
+    <template id="portal_vacante_cerrada" name="Reclutamiento TMS: vacante cerrada">
+        <t t-call="reclutamiento_tms.portal_layout">
+            <section class="rt-section rt-mensaje">
+                <div class="rt-container">
+                    <h1 class="rt-title">Búsqueda <span>cerrada</span></h1>
+                    <p>Esta búsqueda ya no recibe postulaciones.</p>
+                    <a href="/reclutamiento_tms#busquedas" class="rt-btn">Ver búsquedas activas</a>
+                </div>
+            </section>
+        </t>
+    </template>
+
+    <template id="portal_gracias" name="Reclutamiento TMS: gracias">
+        <t t-call="reclutamiento_tms.portal_layout">
+            <section class="rt-section rt-mensaje">
+                <div class="rt-container">
+                    <div class="rt-check">✓</div>
+                    <h1 class="rt-title">¡Gracias, <span t-esc="postulacion.nombre"/>!</h1>
+                    <p>Recibimos tu postulación <b t-esc="postulacion.name"/> a <b t-esc="postulacion.vacante_id.name"/>.</p>
+                    <t t-if="entrevista">
+                        <p>Para completar tu postulación hacé la entrevista en línea. Te lleva unos minutos.</p>
+                        <a t-attf-href="/reclutamiento_tms/entrevista/{{ entrevista.access_token }}" class="rt-btn rt-btn-grande">Hacer la entrevista</a>
+                    </t>
+                    <p t-else="">El equipo de Selección revisará tu perfil y se comunicará con vos.</p>
+                    <p><a href="/reclutamiento_tms" class="rt-link">Volver al inicio</a></p>
+                </div>
+            </section>
+        </t>
+    </template>
+
+    <!-- =====================================================================
+         NOTICIAS
+         ===================================================================== -->
+    <template id="portal_noticias" name="Reclutamiento TMS: noticias">
+        <t t-call="reclutamiento_tms.portal_layout">
+            <t t-set="titulo" t-value="'Noticias'"/>
+            <section class="rt-hero rt-hero-chico" style="background-image: url('/reclutamiento_tms/static/src/img/banda.jpg')">
+                <div class="rt-container">
+                    <p class="rt-hero-kicker">NOVEDADES</p>
+                    <h1>Noticias</h1>
+                </div>
+            </section>
+            <section class="rt-section">
+                <div class="rt-container">
+                    <div t-if="noticias" class="rt-grid">
+                        <t t-foreach="noticias" t-as="noticia">
+                            <t t-call="reclutamiento_tms.portal_tarjeta_noticia"/>
+                        </t>
+                    </div>
+                    <p t-else="" class="rt-empty">Todavía no hay noticias publicadas.</p>
+                </div>
+            </section>
+        </t>
+    </template>
+
+    <template id="portal_noticia" name="Reclutamiento TMS: noticia">
+        <t t-call="reclutamiento_tms.portal_layout">
+            <t t-set="titulo" t-value="noticia.name"/>
+            <article class="rt-section">
+                <div class="rt-container rt-articulo">
+                    <a href="/reclutamiento_tms/noticias" class="rt-back rt-back-oscuro">← Noticias</a>
+                    <p class="rt-card-kicker" t-field="noticia.fecha"/>
+                    <h1 class="rt-articulo-titulo" t-esc="noticia.name"/>
+                    <img t-if="noticia.imagen" class="rt-articulo-img"
+                         t-attf-src="/reclutamiento_tms/noticias/{{ noticia.id }}/imagen" t-att-alt="noticia.name"/>
+                    <p t-if="noticia.resumen" class="rt-articulo-resumen" t-esc="noticia.resumen"/>
+                    <div class="rt-rich" t-out="noticia.contenido"/>
+                    <div t-if="vacante_abierta" class="rt-cta">
+                        <p>Esta noticia tiene una búsqueda abierta: <b t-esc="vacante_abierta.name"/></p>
+                        <a t-attf-href="/reclutamiento_tms/{{ vacante_abierta.id }}" class="rt-btn">Postularme</a>
+                    </div>
+                </div>
+            </article>
+            <section t-if="otras" class="rt-section rt-section-gris">
+                <div class="rt-container">
+                    <h2 class="rt-title">Más <span>noticias</span></h2>
+                    <div class="rt-grid">
+                        <t t-foreach="otras[:3]" t-as="noticia">
+                            <t t-call="reclutamiento_tms.portal_tarjeta_noticia"/>
+                        </t>
+                    </div>
+                </div>
+            </section>
+        </t>
+    </template>
+
+    <!-- =====================================================================
+         ENTREVISTA (CHAT)
+         ===================================================================== -->
+    <template id="portal_entrevista" name="Reclutamiento TMS: entrevista">
+        <t t-call="reclutamiento_tms.portal_layout">
+            <t t-set="titulo" t-value="entrevista.name"/>
+            <section class="rt-section rt-section-gris">
+                <div class="rt-container rt-chat-wrap">
+                    <div class="rt-chat" t-att-data-token="token">
+                        <header class="rt-chat-head">
+                            <div>
+                                <p class="rt-card-kicker" t-esc="entrevista.postulacion_id.vacante_id.name"/>
+                                <h1 t-esc="entrevista.name"/>
+                            </div>
+                            <div class="rt-progreso" aria-live="polite">
+                                <span class="rt-progreso-txt"/>
+                                <div class="rt-progreso-barra"><div/></div>
+                            </div>
+                        </header>
+                        <div class="rt-chat-log" role="log" aria-live="polite"/>
+                        <div class="rt-chat-error" role="alert" hidden=""/>
+                        <div class="rt-chat-input"/>
+                    </div>
+                    <noscript><p class="rt-alert rt-alert-error">Para hacer la entrevista necesitás habilitar JavaScript.</p></noscript>
+                </div>
+            </section>
+            <script src="/reclutamiento_tms/static/src/js/entrevista.js" defer=""/>
+        </t>
+    </template>
+
+    <template id="portal_entrevista_no_disponible" name="Reclutamiento TMS: entrevista no disponible">
+        <t t-call="reclutamiento_tms.portal_layout">
+            <section class="rt-section rt-mensaje">
+                <div class="rt-container">
+                    <h1 class="rt-title">Entrevista <span>no disponible</span></h1>
+                    <p>El enlace no es válido o la entrevista todavía no está habilitada.
+                        Si creés que es un error, escribinos.</p>
+                    <a href="/reclutamiento_tms" class="rt-btn">Volver al inicio</a>
+                </div>
+            </section>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="module_category_reclutamiento_tms" model="ir.module.category">
+        <field name="name">Reclutamiento TMS</field>
+        <field name="sequence">32</field>
+    </record>
+
+    <record id="res_groups_privilege_reclutamiento_tms" model="res.groups.privilege">
+        <field name="name">Reclutamiento TMS</field>
+        <field name="sequence">32</field>
+        <field name="category_id" ref="module_category_reclutamiento_tms"/>
+    </record>
+
+    <record id="group_reclutamiento_user" model="res.groups">
+        <field name="name">Selección</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_reclutamiento_tms"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Gestiona vacantes, postulaciones, entrevistas y noticias. Recibe los avisos de Lista Negra.</field>
+    </record>
+
+    <record id="group_reclutamiento_manager" model="res.groups">
+        <field name="name">Administrador</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_reclutamiento_tms"/>
+        <field name="implied_ids" eval="[(4, ref('group_reclutamiento_user'))]"/>
+        <field name="comment">Además configura plantillas, etapas, la API de IA y administra la Lista Negra.</field>
+    </record>
+
+    <record id="rule_reclutamiento_vacante_company" model="ir.rule">
+        <field name="name">Vacante: multicompañía</field>
+        <field name="model_id" ref="model_reclutamiento_vacante"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_reclutamiento_postulacion_company" model="ir.rule">
+        <field name="name">Postulación: multicompañía</field>
+        <field name="model_id" ref="model_reclutamiento_postulacion"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="rule_reclutamiento_noticia_company" model="ir.rule">
+        <field name="name">Noticia: multicompañía</field>
+        <field name="model_id" ref="model_reclutamiento_noticia"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+</odoo>

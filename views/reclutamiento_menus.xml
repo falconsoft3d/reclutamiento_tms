@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_reclutamiento_tms_root" name="Reclutamiento TMS" sequence="77"
+              web_icon="reclutamiento_tms,static/description/icon.png"
+              groups="reclutamiento_tms.group_reclutamiento_user"/>
+
+    <menuitem id="menu_reclutamiento_vacante" name="Cargos / Vacantes" parent="menu_reclutamiento_tms_root"
+              action="action_reclutamiento_vacante" sequence="10"/>
+    <menuitem id="menu_reclutamiento_postulacion" name="Postulaciones" parent="menu_reclutamiento_tms_root"
+              action="action_reclutamiento_postulacion" sequence="20"/>
+    <menuitem id="menu_reclutamiento_postulante" name="Postulantes" parent="menu_reclutamiento_tms_root"
+              action="action_reclutamiento_postulante" sequence="30"/>
+    <menuitem id="menu_reclutamiento_lista_negra" name="Lista Negra" parent="menu_reclutamiento_tms_root"
+              action="action_reclutamiento_lista_negra" sequence="40"/>
+    <menuitem id="menu_reclutamiento_noticia" name="Noticias" parent="menu_reclutamiento_tms_root"
+              action="action_reclutamiento_noticia" sequence="50"/>
+
+    <menuitem id="menu_reclutamiento_config" name="Configuración" parent="menu_reclutamiento_tms_root"
+              sequence="90" groups="reclutamiento_tms.group_reclutamiento_manager"/>
+    <menuitem id="menu_reclutamiento_plantilla_datos" name="Plantillas de Datos" parent="menu_reclutamiento_config"
+              action="action_reclutamiento_plantilla_datos" sequence="10"/>
+    <menuitem id="menu_reclutamiento_categoria" name="Categorías de datos" parent="menu_reclutamiento_config"
+              action="action_reclutamiento_categoria" sequence="15"/>
+    <menuitem id="menu_reclutamiento_plantilla_entrevista" name="Plantillas de Entrevistas"
+              parent="menu_reclutamiento_config" action="action_reclutamiento_plantilla_entrevista" sequence="20"/>
+    <menuitem id="menu_reclutamiento_etapa" name="Etapas" parent="menu_reclutamiento_config"
+              action="action_reclutamiento_etapa" sequence="30"/>
+    <menuitem id="menu_reclutamiento_ia_config" name="API Cloud IA" parent="menu_reclutamiento_config"
+              action="action_reclutamiento_ia_config" sequence="40"/>
+</odoo>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="etapa_recibida" model="reclutamiento.etapa">
+        <field name="name">Recibida</field>
+        <field name="sequence">10</field>
+        <field name="codigo">recibida</field>
+        <field name="descripcion">Postulación recibida desde el portal, cargada a mano o interna.</field>
+    </record>
+    <record id="etapa_evaluacion_ia" model="reclutamiento.etapa">
+        <field name="name">Evaluación IA</field>
+        <field name="sequence">20</field>
+        <field name="codigo">evaluacion_ia</field>
+        <field name="descripcion">La IA evaluó la postulación: revisar puntaje, puntos fuertes y riesgos.</field>
+    </record>
+    <record id="etapa_entrevista" model="reclutamiento.etapa">
+        <field name="name">Entrevista</field>
+        <field name="sequence">30</field>
+        <field name="codigo">entrevista</field>
+        <field name="descripcion">Preseleccionada para entrevista con el equipo de Selección.</field>
+    </record>
+    <record id="etapa_lista_negra" model="reclutamiento.etapa">
+        <field name="name">Lista Negra</field>
+        <field name="sequence">40</field>
+        <field name="codigo">lista_negra</field>
+        <field name="descripcion">Coincide con la Lista Negra por Email, Teléfono o DNI/CUIT.</field>
+    </record>
+    <record id="etapa_aprobado" model="reclutamiento.etapa">
+        <field name="name">Aprobado</field>
+        <field name="sequence">50</field>
+        <field name="codigo">aprobado</field>
+        <field name="fold">True</field>
+    </record>
+    <record id="etapa_rechazado" model="reclutamiento.etapa">
+        <field name="name">Rechazado</field>
+        <field name="sequence">60</field>
+        <field name="codigo">rechazado</field>
+        <field name="fold">True</field>
+    </record>
+</odoo>

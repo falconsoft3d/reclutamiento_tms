@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="mail_template_postulacion_recibida" model="mail.template">
+        <field name="name">Reclutamiento: postulación recibida</field>
+        <field name="model_id" ref="model_reclutamiento_postulacion"/>
+        <field name="subject">Recibimos tu postulación a {{ object.vacante_id.name }}</field>
+        <field name="email_from">{{ (object.company_id.email_formatted or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #222;">
+    <p>Hola <t t-out="object.nombre or ''"/>,</p>
+    <p>Recibimos tu postulación <b t-out="object.name or ''"/> a la búsqueda <b t-out="object.vacante_id.name or ''"/>.</p>
+    <t t-set="entrevista" t-value="object._primera_entrevista_habilitada()"/>
+    <p t-if="entrevista">
+        Para continuar, completá la entrevista en línea desde este enlace:<br/>
+        <a t-att-href="entrevista.url" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#46aa4a;color:#fff;text-decoration:none;border-radius:4px;">Hacer la entrevista</a>
+    </p>
+    <p>El equipo de Selección revisará tu perfil y se comunicará con vos.</p>
+    <p>Saludos,<br/><t t-out="object.company_id.name or ''"/></p>
+</div>
+        </field>
+    </record>
+
+    <record id="mail_template_entrevista" model="mail.template">
+        <field name="name">Reclutamiento: enlace de entrevista</field>
+        <field name="model_id" ref="model_reclutamiento_entrevista"/>
+        <field name="subject">{{ object.name }} - {{ object.postulacion_id.vacante_id.name }}</field>
+        <field name="email_from">{{ (object.company_id.email_formatted or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.postulacion_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #222;">
+    <p>Hola <t t-out="object.postulacion_id.nombre or ''"/>,</p>
+    <p>Te invitamos a completar la <b t-out="object.name or ''"/> de la búsqueda
+        <b t-out="object.postulacion_id.vacante_id.name or ''"/>. Es un chat guiado y te lleva unos minutos.</p>
+    <p><a t-att-href="object.url" style="display:inline-block;padding:10px 20px;background:#46aa4a;color:#fff;text-decoration:none;border-radius:4px;">Comenzar la entrevista</a></p>
+    <p>Saludos,<br/><t t-out="object.company_id.name or ''"/></p>
+</div>
+        </field>
+    </record>
+</odoo>
